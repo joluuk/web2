@@ -1,10 +1,12 @@
 <?php
 session_start();
+ob_start(); // Menampung output agar tidak terjadi error "headers already sent"
 
 // 1. Jalur koneksi yang benar dan stabil untuk Vercel
 include __DIR__ . '/../koneksi.php';
 
 // 2. Logika Satpam Gabungan (Session & Cookie)
+// Memastikan Admin tetap bisa akses meskipun Session terhapus di Vercel
 $is_login = (isset($_SESSION['status']) && $_SESSION['status'] == "login") || 
              (isset($_COOKIE['user_status']) && $_COOKIE['user_status'] == "login");
 
@@ -16,7 +18,7 @@ if (!$is_login) {
     exit;
 }
 
-// Proteksi Level (Contoh untuk folder Admin)
+// Proteksi Level: Hanya Admin yang boleh masuk
 if ($user_level != "admin") {
     header("location:../login/login.php?pesan=bukan_admin");
     exit;
@@ -40,7 +42,7 @@ if(isset($_GET['hapus'])){
     echo "<script>alert('Data berhasil dihapus!'); window.location='dashboard.php';</script>";
 }
 
-// 4. HITUNG STATISTIK (Sederhana)
+// 4. HITUNG STATISTIK
 // Hitung yang sedang "Dijemput / Proses" (Semua yang belum selesai)
 $q_proses = mysqli_query($conn, "SELECT * FROM transaksi WHERE status_laundry != 'Selesai'");
 $jml_proses = mysqli_num_rows($q_proses);
@@ -68,54 +70,16 @@ $data_transaksi = mysqli_query($conn, "SELECT * FROM transaksi ORDER BY tgl_tran
             --sidebar-dark: #023e8a;
             --bg-light: #f8f9fa;
         }
-
-        body { 
-            background-color: var(--bg-light); 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            overflow-x: hidden; 
-        }
-
-        /* Sidebar Styling */
-        .sidebar {
-            width: 260px; height: 100vh; background: var(--sidebar-dark);
-            position: fixed; left: 0; top: 0; color: white;
-            transition: 0.3s; z-index: 1000;
-        }
+        body { background-color: var(--bg-light); font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+        .sidebar { width: 260px; height: 100vh; background: var(--sidebar-dark); position: fixed; left: 0; top: 0; color: white; transition: 0.3s; z-index: 1000; }
         .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .nav-link {
-            color: rgba(255,255,255,0.7); padding: 15px 25px;
-            display: flex; align-items: center; gap: 12px; transition: 0.3s; font-weight: 500;
-        }
-        .nav-link:hover, .nav-link.active {
-            color: white; background: rgba(255,255,255,0.1); border-left: 4px solid var(--accent-blue);
-        }
-        .nav-link i { width: 20px; text-align: center; }
-
-        /* Content Styling */
+        .nav-link { color: rgba(255,255,255,0.7); padding: 15px 25px; display: flex; align-items: center; gap: 12px; text-decoration: none; transition: 0.3s; font-weight: 500; }
+        .nav-link:hover, .nav-link.active { color: white; background: rgba(255,255,255,0.1); border-left: 4px solid var(--accent-blue); }
         .main-content { margin-left: 260px; padding: 40px; min-height: 100vh; }
-        
-        /* Card Stats */
-        .card-stat {
-            border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.02);
-            transition: 0.3s; background: white;
-        }
-        .card-stat:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-
-        /* Table Styling */
-        .table-box {
-            background: white; border-radius: 15px; padding: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.02);
-        }
-        .table thead th {
-            font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
-            color: #888; border-bottom: 2px solid #eee;
-        }
+        .card-stat { border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); transition: 0.3s; background: white; }
+        .table-box { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
         .badge-custom { padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; }
-
-        @media (max-width: 768px) {
-            .sidebar { margin-left: -260px; }
-            .main-content { margin-left: 0; padding: 20px; }
-        }
+        @media (max-width: 768px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; padding: 20px; } }
     </style>
 </head>
 <body>
@@ -125,16 +89,12 @@ $data_transaksi = mysqli_query($conn, "SELECT * FROM transaksi ORDER BY tgl_tran
             <h4 class="fw-bold mb-0 text-white"><i class="fa-solid fa-wand-sparkles me-2 text-info"></i>LAUNDRY PUTRI</h4>
             <small class="opacity-50">Petamburan Admin Case</small>
         </div>
-        
         <div class="mt-4">
             <a href="dashboard.php" class="nav-link active"><i class="fa-solid fa-house"></i> Dashboard</a>
             <a href="jemput.php" class="nav-link"><i class="fa-solid fa-truck-pickup"></i> Jemputan</a>
             <a href="list.php" class="nav-link"><i class="fa-solid fa-list-check"></i> Semua Pesanan</a>
             <a href="tambah_kasir.php" class="nav-link"><i class="fa-solid fa-user-plus"></i> Tambah Kasir</a>
-            
-            <div class="px-4 mt-5">
-                <small class="text-uppercase opacity-50" style="font-size: 10px; letter-spacing: 1px;">Pengaturan</small>
-            </div>
+            <div class="px-4 mt-5"><small class="text-uppercase opacity-50" style="font-size: 10px; letter-spacing: 1px;">Pengaturan</small></div>
             <a href="logout.php" class="nav-link text-danger mt-4"><i class="fa-solid fa-power-off"></i> Keluar</a>
         </div>
     </div>
@@ -142,7 +102,9 @@ $data_transaksi = mysqli_query($conn, "SELECT * FROM transaksi ORDER BY tgl_tran
     <div class="main-content">
         <div class="d-flex justify-content-between align-items-center mb-5">
             <div>
-                <h2 class="fw-bold text-dark mb-1">Assalamu'alaikum, <?php echo $_SESSION['nama_lengkap']; ?></h2>
+                <h2 class="fw-bold text-dark mb-1">
+                    Assalamu'alaikum, <?php echo $_SESSION['nama_lengkap'] ?? $_COOKIE['user_name'] ?? 'Admin'; ?>
+                </h2>
                 <p class="text-muted mb-0 small">Manajemen operasional Laundry Putri.</p>
             </div>
             <div class="text-end">
@@ -163,7 +125,6 @@ $data_transaksi = mysqli_query($conn, "SELECT * FROM transaksi ORDER BY tgl_tran
                     </div>
                 </div>
             </div>
-            
             <div class="col-md-6">
                 <div class="card card-stat p-4 border-start border-4 border-success">
                     <div class="d-flex justify-content-between align-items-center">
@@ -202,9 +163,7 @@ $data_transaksi = mysqli_query($conn, "SELECT * FROM transaksi ORDER BY tgl_tran
                         <?php 
                         if(mysqli_num_rows($data_transaksi) > 0){
                             while($row = mysqli_fetch_assoc($data_transaksi)) { 
-                                // LOGIC WARNA BADGE (HANYA 2 JENIS)
                                 $st = $row['status_laundry'];
-                                // Jika Selesai = Hijau, Selain itu = Kuning (Proses/Jemput)
                                 $badgeClass = ($st == 'Selesai') ? 'bg-success' : 'bg-warning text-dark';
                                 $statusLabel = ($st == 'Selesai') ? 'SELESAI' : 'DIJEMPUT / PROSES';
                         ?>
@@ -214,7 +173,7 @@ $data_transaksi = mysqli_query($conn, "SELECT * FROM transaksi ORDER BY tgl_tran
                                 <div class="fw-bold text-dark"><?php echo $row['nama_pelanggan']; ?></div>
                                 <small class="text-muted">
                                     <i class="fa-brands fa-whatsapp me-1 text-success fw-bold"></i>
-                                    <a href="https://wa.me/<?php echo $row['no_wa']; ?>" target="_blank" class="text-decoration-none text-muted"><?php echo $row['no_wa']; ?></a>
+                                    <?php echo $row['no_wa']; ?>
                                 </small>
                             </td>
                             <td>
@@ -237,11 +196,9 @@ $data_transaksi = mysqli_query($conn, "SELECT * FROM transaksi ORDER BY tgl_tran
                                             title="Update Status">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
-                                    
                                     <a href="dashboard.php?hapus=<?php echo $row['order_id']; ?>" 
                                        class="btn btn-sm btn-outline-danger border-0 bg-light rounded-2" 
-                                       onclick="return confirm('Yakin hapus data ini?')" 
-                                       title="Hapus">
+                                       onclick="return confirm('Yakin hapus data ini?')">
                                         <i class="fa-solid fa-trash"></i>
                                     </a>
                                 </div>
@@ -265,7 +222,7 @@ $data_transaksi = mysqli_query($conn, "SELECT * FROM transaksi ORDER BY tgl_tran
                                             <div class="mb-3">
                                                 <label class="form-label small fw-bold">Ubah Status Menjadi</label>
                                                 <select name="status_laundry" class="form-select">
-                                                    <option value="Menunggu Penjemputan" <?php if($st != 'Selesai') echo 'selected'; ?>>Dijemput / Proses</option>
+                                                    <option value="Proses" <?php if($st != 'Selesai') echo 'selected'; ?>>Dijemput / Proses</option>
                                                     <option value="Selesai" <?php if($st == 'Selesai') echo 'selected'; ?>>Selesai</option>
                                                 </select>
                                             </div>

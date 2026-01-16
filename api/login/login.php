@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Admin - Laundry Putri</title>
+    <title>Masuk - Laundry Putri</title>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -68,17 +68,17 @@
         <div class="brand-icon">
             <i class="fa-solid fa-wand-sparkles"></i>
         </div>
-        <h3 class="fw-bold text-dark mb-1">Admin Login</h3>
-        <p class="text-muted small mb-4">Panel Manajemen Laundry Putri</p>
+        <h3 class="fw-bold text-dark mb-1">Masuk Akun</h3>
+        <p class="text-muted small mb-4">Silakan masuk ke akun Antum untuk melanjutkan</p>
 
         <?php 
         if(isset($_GET['pesan'])){
             if($_GET['pesan'] == "gagal"){
                 echo "<div class='alert alert-danger py-2 small shadow-sm border-0 mb-4'>Username atau Password Salah!</div>";
             } else if($_GET['pesan'] == "belum_login"){
-                echo "<div class='alert alert-warning py-2 small shadow-sm border-0 mb-4'>Silakan Login Terlebih Dahulu</div>";
+                echo "<div class='alert alert-warning py-2 small shadow-sm border-0 mb-4'>Afwan, silakan Login terlebih dahulu</div>";
             } else if($_GET['pesan'] == "logout"){
-                echo "<div class='alert alert-success py-2 small shadow-sm border-0 mb-4'>Anda Berhasil Logout</div>";
+                echo "<div class='alert alert-success py-2 small shadow-sm border-0 mb-4'>Alhamdulillah, Antum berhasil Logout</div>";
             }
         }
         ?>

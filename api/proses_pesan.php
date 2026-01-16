@@ -1,9 +1,8 @@
 <?php
 session_start();
 require_once __DIR__ . '/koneksi.php';
-// require_once 'helper_notif.php'; <-- Hapus atau biarkan saja, tidak terpakai di sini
 
-// Panggil Library Midtrans
+// Panggil Library Midtrans (Sesuai kode asli Antum)
 require_once __DIR__ . '/midtrans-php/Midtrans.php';
 
 if (isset($_POST['kirim_pesanan'])) {
@@ -25,7 +24,7 @@ if (isset($_POST['kirim_pesanan'])) {
     // Buat Order ID Unik
     $order_id = "LND-" . date('ymd') . "-" . rand(100, 999);
 
-    // --- 3. LOGIKA HARGA (Sinkron dengan Javascript Frontend) ---
+    // --- 3. LOGIKA HARGA (Tetap 3, 2, 1 Sesuai Permintaan) ---
     $harga_satuan = 0;
 
     if ($layanan == 'Lipat') {
@@ -76,19 +75,15 @@ if (isset($_POST['kirim_pesanan'])) {
         // Minta Token Midtrans
         $snapToken = \Midtrans\Snap::getSnapToken($params);
 
-        // --- 5. SIMPAN KE DATABASE ---
+        // --- 5. SIMPAN KE DATABASE (STATUS SUDAH DIGANTI) ---
+        // 'Menunggu Penjemputan' diganti jadi 'Proses' agar dashboard langsung kuning/hijau
         $query = "INSERT INTO transaksi 
-                  (order_id, nama_pelanggan, no_wa, alamat_jemput, jenis_layanan, durasi_layanan, berat_qty, total_harga, status_laundry, status_bayar, snap_token)
+                  (order_id, nama_pelanggan, no_wa, alamat_jemput, jenis_layanan, durasi_layanan, berat_qty, total_harga, status_laundry, status_bayar, snap_token, tgl_transaksi)
                   VALUES 
-                  ('$order_id', '$nama', '$wa', '$alamat', '$layanan', '$durasi', '$berat', '$total_harga', 'Menunggu Penjemputan', 'pending', '$snapToken')";
+                  ('$order_id', '$nama', '$wa', '$alamat', '$layanan', '$durasi', '$berat', '$total_harga', 'Proses', 'pending', '$snapToken', NOW())";
 
         if (mysqli_query($conn, $query)) {
-            
-            // --- BAGIAN NOTIFIKASI DIHAPUS ---
-            // Supaya tidak ada WA masuk sebelum bayar
-            // ---------------------------------
-
-            // Redirect ke halaman pembayaran
+            // Redirect ke nota
             header("Location: nota.php?id=$order_id");
             exit();
         } else {

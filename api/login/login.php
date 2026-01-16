@@ -103,6 +103,9 @@
             <button type="submit" class="btn btn-primary btn-login w-100 mb-3 text-white">
                 MASUK SEKARANG
             </button>
+             <div class="text-center small text-muted">
+                belum punya akun? <a href="../register.php" class="text-decoration-none fw-bold" style="color: #0077b6;">daftar Disini</a>
+            </div>
             
             <a href="../index.php" class="text-decoration-none small text-muted">Kembali ke Beranda</a>
         </form>

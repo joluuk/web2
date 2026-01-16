@@ -110,7 +110,7 @@ if (isset($_POST['register'])) {
             <i class="fa-solid fa-user-plus"></i>
         </div>
         <h3 class="fw-bold text-dark mb-1">Daftar Akun</h3>
-        <p class="text-muted small mb-4">Gabung Member Laundry Putri</p>
+        <p class="text-muted small mb-4">Gabung Laundry Putri</p>
 
         <form action="" method="POST">
             

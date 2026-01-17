@@ -13,14 +13,14 @@ if(isset($_POST['simpan_transaksi'])){
     $berat    = $_POST['berat'];
     $opsi     = $_POST['bayar'];   // 'nanti' atau 'sekarang'
 
-    // Buat Order ID Unik (Format: ORD-tahunbulantanggal-acak)
+    // Buat Order ID Unik
     $order_id = "ORD-" . date('ymd') . "-" . rand(100, 999);
 
-    // --- 2. LOGIKA HARGA (Sesuai Permintaan Antum) ---
+    // --- 2. LOGIKA HARGA (TETAP SESUAI PERMINTAAN ANTUM: 6, 4, 2) ---
     $harga_satuan = 0;
 
     if ($layanan == 'Lipat') {
-        if ($durasi == '1') { $harga_satuan = 6; }      // Kilat (Ana ubah ke ribuan agar format Rupiah benar)
+        if ($durasi == '1') { $harga_satuan = 6; }      // Kilat
         elseif ($durasi == '2') { $harga_satuan = 4; }  // Express
         else { $harga_satuan = 2; }                     // Reguler
     } 
@@ -31,28 +31,29 @@ if(isset($_POST['simpan_transaksi'])){
     } 
     elseif ($layanan == 'Karpet') {
         $harga_satuan = 10; 
-        $durasi = 3; // Karpet selalu reguler
+        $durasi = 3; 
     }    
 
     $total_harga = $harga_satuan * $berat;
-    // --------------------------------------------------
 
-    // 3. Tentukan Status Awal
-    // Status Bayar: 'pending' (Karena kalau 'nanti' jelas pending, kalau 'sekarang' juga pending sampai sukses di Midtrans)
-    // Status Laundry: 'Proses' (Karena input di Kasir, berarti barang sudah diterima laundry)
+    // 3. Status Awal
     $status_bayar = 'pending';
     $status_laundry = 'Proses'; 
+    
+    // --- PERBAIKAN PENTING AGAR TIDAK ERROR DATABASE ---
+    // Kita isi alamat otomatis dengan tanda strip (-) atau keterangan
+    // karena kolom alamat_jemput di database Antum wajib diisi (NOT NULL)
+    $alamat_default = "- (Pelanggan Datang ke Outlet)";
 
-    // 4. Simpan ke Database
+    // 4. Simpan ke Database (Tambahkan kolom alamat_jemput)
     $query = "INSERT INTO transaksi 
-              (order_id, nama_pelanggan, no_wa, jenis_layanan, durasi_layanan, berat_qty, total_harga, status_laundry, status_bayar, tgl_transaksi)
+              (order_id, nama_pelanggan, no_wa, alamat_jemput, jenis_layanan, durasi_layanan, berat_qty, total_harga, status_laundry, status_bayar, tgl_transaksi)
               VALUES 
-              ('$order_id', '$nama', '$wa', '$layanan', '$durasi', '$berat', '$total_harga', '$status_laundry', '$status_bayar', NOW())";
+              ('$order_id', '$nama', '$wa', '$alamat_default', '$layanan', '$durasi', '$berat', '$total_harga', '$status_laundry', '$status_bayar', NOW())";
 
     if(mysqli_query($conn, $query)){
         
-        // --- 5. LOGIKA PENGALIHAN (REDIRECT) ---
-        
+        // --- 5. LOGIKA PENGALIHAN ---
         if ($opsi == 'sekarang') {
             // SKENARIO: Bayar Sekarang -> Lempar ke Midtrans
             header("location:bayar.php?order_id=$order_id");

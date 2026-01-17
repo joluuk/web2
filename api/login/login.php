@@ -105,7 +105,7 @@
             </button>
              <div class="text-center small text-muted">
                 belum punya akun? <a href="../register.php" class="text-decoration-none fw-bold" style="color: #0077b6;">daftar Disini</a>
-            </div>
+            </div>  
             
             <a href="../index.php" class="text-decoration-none small text-muted">Kembali ke Beranda</a>
         </form>

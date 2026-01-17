@@ -1,8 +1,6 @@
-
 <?php
 session_start();
 
-// 1. Jalur koneksi yang benar dan stabil untuk Vercel
 include __DIR__ . '/../koneksi.php';
 
 // 2. Logika Satpam Gabungan (Session & Cookie)

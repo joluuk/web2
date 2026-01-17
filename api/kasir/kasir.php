@@ -70,9 +70,9 @@ if ($user_level != "kasir") {
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Jenis Layanan</label>
                             <select name="layanan" id="layanan" class="form-select">
-                                <option value="Lipat">Cuci Lipat (4rb - 6rb)</option>
-                                <option value="Gosok">Cuci Gosok (6rb - 10rb)</option>
-                                <option value="Karpet">Laundry Karpet (20rb)</option>
+                                <option value="Lipat">Cuci Lipat (Rp.1)</option>
+                                <option value="Gosok">Cuci Gosok (RP.2)</option>
+                                <option value="Karpet">Laundry Karpet (RP.10)</option>
                             </select>
                         </div>
 
@@ -216,17 +216,17 @@ if ($user_level != "kasir") {
 
         // --- LOGIKA HARGA ---
         if (layanan === 'Lipat') {
-            if (durasi === '1') harga = 6000;
-            else if (durasi === '2') harga = 5000;
-            else harga = 4000;
+            if (durasi === '1') harga = 3;
+            else if (durasi === '2') harga = 2;
+            else harga = 1;
         } 
         else if (layanan === 'Gosok') {
-            if (durasi === '1') harga = 10000;
-            else if (durasi === '2') harga = 8000;
-            else harga = 6000;
+            if (durasi === '1') harga = 6;
+            else if (durasi === '2') harga = 4;
+            else harga = 2;
         } 
         else if (layanan === 'Karpet') {
-            harga = 20000; // Harga Karpet tetap
+            harga = 10; // Harga Karpet tetap
         }
 
         let total = harga * berat;

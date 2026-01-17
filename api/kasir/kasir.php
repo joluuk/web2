@@ -68,7 +68,7 @@ if ($user_level != "kasir") {
                 </div>
                 <div class="card-body">
                     
-                    <form action="../api/kasir/proses_kasir.php" method="POST">
+                    <form action="proses_kasir.php" method="POST">
                         
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Nama Pelanggan</label>

@@ -1,33 +1,40 @@
 <?php
 session_start();
-ob_start(); // Wajib untuk Vercel agar header location jalan lancar
-include __DIR__ . '/../koneksi.php';
+ob_start(); 
+
+// PENTING: Karena file ini sekarang ada di folder 'kasir',
+// dan koneksi ada di folder 'api', maka kita harus mundur satu langkah lalu masuk ke api.
+// Pastikan path ini benar sesuai lokasi koneksi.php antum.
+if (file_exists(__DIR__ . '/../api/koneksi.php')) {
+    include __DIR__ . '/../api/koneksi.php';
+} else {
+    // Jaga-jaga kalau koneksi.php antum ada di folder root (luar)
+    include __DIR__ . '/../koneksi.php';
+}
 
 if(isset($_POST['simpan_transaksi'])){
     
-    // 1. Ambil Data dari Form Kasir
+    // 1. Ambil Data
     $nama     = mysqli_real_escape_string($conn, $_POST['nama']);
     $wa       = mysqli_real_escape_string($conn, $_POST['wa']);
-    $layanan  = $_POST['layanan']; // Lipat, Gosok, Karpet
-    $durasi   = $_POST['durasi'];  // 3, 2, 1
+    $layanan  = $_POST['layanan']; 
+    $durasi   = $_POST['durasi']; 
     $berat    = $_POST['berat'];
-    $opsi     = $_POST['bayar'];   // 'nanti' atau 'sekarang'
+    $opsi     = $_POST['bayar']; 
 
-    // Buat Order ID Unik
     $order_id = "ORD-" . date('ymd') . "-" . rand(100, 999);
 
-    // --- 2. LOGIKA HARGA (TETAP SESUAI PERMINTAAN ANTUM: 6, 4, 2) ---
+    // 2. Logika Harga (Tetap 6, 4, 2)
     $harga_satuan = 0;
-
     if ($layanan == 'Lipat') {
-        if ($durasi == '1') { $harga_satuan = 6; }      // Kilat
-        elseif ($durasi == '2') { $harga_satuan = 4; }  // Express
-        else { $harga_satuan = 2; }                     // Reguler
+        if ($durasi == '1') { $harga_satuan = 6; }      
+        elseif ($durasi == '2') { $harga_satuan = 4; }  
+        else { $harga_satuan = 2; }                     
     } 
     elseif ($layanan == 'Gosok') {
-        if ($durasi == '1') { $harga_satuan = 3; }      // Kilat
-        elseif ($durasi == '2') { $harga_satuan = 2; }  // Express
-        else { $harga_satuan = 1; }                     // Reguler
+        if ($durasi == '1') { $harga_satuan = 3; }      
+        elseif ($durasi == '2') { $harga_satuan = 2; }  
+        else { $harga_satuan = 1; }                     
     } 
     elseif ($layanan == 'Karpet') {
         $harga_satuan = 10; 
@@ -35,17 +42,11 @@ if(isset($_POST['simpan_transaksi'])){
     }    
 
     $total_harga = $harga_satuan * $berat;
-
-    // 3. Status Awal
     $status_bayar = 'pending';
     $status_laundry = 'Proses'; 
-    
-    // --- PERBAIKAN PENTING AGAR TIDAK ERROR DATABASE ---
-    // Kita isi alamat otomatis dengan tanda strip (-) atau keterangan
-    // karena kolom alamat_jemput di database Antum wajib diisi (NOT NULL)
     $alamat_default = "- (Pelanggan Datang ke Outlet)";
 
-    // 4. Simpan ke Database (Tambahkan kolom alamat_jemput)
+    // 3. Simpan Database
     $query = "INSERT INTO transaksi 
               (order_id, nama_pelanggan, no_wa, alamat_jemput, jenis_layanan, durasi_layanan, berat_qty, total_harga, status_laundry, status_bayar, tgl_transaksi)
               VALUES 
@@ -53,14 +54,14 @@ if(isset($_POST['simpan_transaksi'])){
 
     if(mysqli_query($conn, $query)){
         
-        // --- 5. LOGIKA PENGALIHAN ---
+        // 4. Redirect (Jauh lebih simpel karena satu folder)
         if ($opsi == 'sekarang') {
-            // SKENARIO: Bayar Sekarang -> Lempar ke Midtrans
+            // Langsung panggil bayar.php (karena tetanggaan)
             header("location:bayar.php?order_id=$order_id");
             exit;
         } 
         else {
-            // SKENARIO: Bayar Nanti -> Balik ke Kasir
+            // Langsung panggil kasir.php (karena tetanggaan)
             header("location:kasir.php?pesan=simpan_pending");
             exit;
         }

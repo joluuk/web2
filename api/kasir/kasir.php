@@ -1,8 +1,9 @@
 <?php
 session_start();
+ob_start(); // Wajib di Vercel biar header location jalan
 include __DIR__ . '/../koneksi.php'; 
 
-// Cek Login (Session atau Cookie)
+// Cek Login
 $is_login = (isset($_SESSION['status']) && $_SESSION['status'] == "login") || 
              (isset($_COOKIE['user_status']) && $_COOKIE['user_status'] == "login");
 
@@ -13,9 +14,7 @@ if (!$is_login) {
     exit;
 }
 
-// PERBAIKAN DI SINI: Pastikan levelnya adalah 'kasir'
 if ($user_level != "kasir") {
-    // Jika Admin mencoba masuk halaman Kasir, lempar ke login dengan pesan berbeda
     header("location:../login/login.php?pesan=bukan_kasir");
     exit;
 }
@@ -32,7 +31,6 @@ if ($user_level != "kasir") {
     <style>
         body { background-color: #f0f9ff; font-family: 'Segoe UI', sans-serif; }
         .navbar { background: #0077b6; }
-        /* Style Card biasa, tanpa garis putus-putus aneh */
         .card { border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     </style>
 </head>
@@ -42,13 +40,25 @@ if ($user_level != "kasir") {
     <div class="container">
         <span class="navbar-brand mb-0 h1"><i class="fa-solid fa-cash-register me-2"></i>KASIR PANEL</span>
         <div class="d-flex align-items-center text-white">
-            
+            <h6 class="mb-0 me-3 small d-none d-md-block">
+                Assalamu'alaikum, <?php echo $_SESSION['nama_lengkap'] ?? $_COOKIE['user_name'] ?? 'Kasir'; ?>
+            </h6>
             <a href="../admin/logout.php" class="btn btn-sm btn-danger rounded-pill px-3">Logout</a>
         </div>
     </div>
 </nav>
 
 <div class="container-fluid px-4">
+    
+    <?php if(isset($_GET['pesan'])): ?>
+        <div class="alert alert-info border-0 shadow-sm mb-4">
+            <?php 
+                if($_GET['pesan']=='simpan_pending') echo "Data berhasil disimpan (Status: Pending).";
+                elseif($_GET['pesan']=='sukses_lunas') echo "Alhamdulillah, Transaksi Lunas!";
+            ?>
+        </div>
+    <?php endif; ?>
+
     <div class="row g-4">
         
         <div class="col-md-4">
@@ -57,7 +67,9 @@ if ($user_level != "kasir") {
                     <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-pen-to-square me-2"></i>Input Pesanan</h6>
                 </div>
                 <div class="card-body">
-                    <form action="proses_kasir.php" method="POST">
+                    
+                    <form action="../api/kasir/proses_kasir.php" method="POST">
+                        
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Nama Pelanggan</label>
                             <input type="text" name="nama" class="form-control" placeholder="Nama Pelanggan" required>
@@ -70,9 +82,9 @@ if ($user_level != "kasir") {
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Jenis Layanan</label>
                             <select name="layanan" id="layanan" class="form-select">
-                                <option value="Lipat">Cuci Lipat (Rp.1)</option>
-                                <option value="Gosok">Cuci Gosok (RP.2)</option>
-                                <option value="Karpet">Laundry Karpet (RP.10)</option>
+                                <option value="Lipat">Cuci Lipat (Rp 3, 2, 1)</option>
+                                <option value="Gosok">Cuci Gosok (Rp 6, 4, 2)</option>
+                                <option value="Karpet">Laundry Karpet (Rp 10)</option>
                             </select>
                         </div>
 
@@ -92,10 +104,10 @@ if ($user_level != "kasir") {
                                 <input type="number" name="berat" id="berat" step="0.1" class="form-control" value="1" min="0.1" required>
                             </div>
                             <div class="col-6 mb-3">
-                                <label class="form-label small fw-bold">Pembayaran</label>
+                                <label class="form-label small fw-bold">Opsi Pembayaran</label>
                                 <select name="bayar" class="form-select">
-                                    <option value="lunas">Lunas</option>
-                                    <option value="pending">Belum Bayar</option>
+                                    <option value="nanti">Bayar Nanti (Pending)</option>
+                                    <option value="sekarang">Bayar Sekarang (Midtrans)</option>
                                 </select>
                             </div>
                         </div>
@@ -104,7 +116,7 @@ if ($user_level != "kasir") {
                             <label class="form-label small fw-bold text-primary">Total Harus Dibayar</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-primary text-white fw-bold">Rp</span>
-                                <input type="text" id="totalDisplay" class="form-control fw-bold text-dark bg-white" readonly value="4.000">
+                                <input type="text" id="totalDisplay" class="form-control fw-bold text-dark bg-white" readonly value="1">
                             </div>
                         </div>
                         
@@ -144,20 +156,26 @@ if ($user_level != "kasir") {
                                     while($row = mysqli_fetch_assoc($query)){
                                         $st = $row['status_laundry'];
                                         $badge = ($st == 'Selesai') ? 'bg-success' : 'bg-warning text-dark';
-                                        $label = ($st == 'Selesai') ? 'SELESAI' : 'PROSES';
+                                        
+                                        // Status Bayar
+                                        $bayar = $row['status_bayar'];
+                                        $badgeBayar = ($bayar == 'lunas') ? 'bg-success' : 'bg-danger';
                                 ?>
                                 <tr>
-                                    <td class="ps-3 fw-bold text-primary"><?php echo $row['order_id']; ?></td>
+                                    <td class="ps-3 fw-bold text-primary small"><?php echo $row['order_id']; ?></td>
                                     <td>
-                                        <div class="fw-bold"><?php echo $row['nama_pelanggan']; ?></div>
-                                        <small class="text-muted"><?php echo $row['no_wa']; ?></small>
+                                        <div class="fw-bold small"><?php echo $row['nama_pelanggan']; ?></div>
+                                        <small class="text-muted" style="font-size: 10px;"><?php echo $row['no_wa']; ?></small>
                                     </td>
                                     <td>
                                         <small class="fw-bold"><?php echo $row['jenis_layanan']; ?></small><br>
-                                        <small class="text-muted"><?php echo $row['durasi_layanan']; ?> Hari • <?php echo $row['berat_qty']; ?> kg</small>
+                                        <small class="text-muted" style="font-size: 10px;"><?php echo $row['durasi_layanan']; ?> Hari</small>
                                     </td>
-                                    <td class="fw-bold">Rp <?php echo number_format($row['total_harga']); ?></td>
-                                    <td><span class="badge <?php echo $badge; ?>"><?php echo $label; ?></span></td>
+                                    <td class="fw-bold small">Rp <?php echo number_format($row['total_harga']); ?></td>
+                                    <td>
+                                        <span class="badge <?php echo $badge; ?> mb-1" style="font-size: 9px;"><?php echo $st; ?></span><br>
+                                        <span class="badge <?php echo $badgeBayar; ?>" style="font-size: 9px;"><?php echo strtoupper($bayar); ?></span>
+                                    </td>
                                 </tr>
                                 <?php 
                                     } 
@@ -184,7 +202,6 @@ if ($user_level != "kasir") {
     const displayTotal = document.getElementById('totalDisplay');
     const alertKarpet = document.getElementById('alertKarpet');
 
-    // Ambil Option Durasi untuk di-disable nanti
     const optExpress = inputDurasi.querySelector('option[value="2"]'); 
     const optKilat = inputDurasi.querySelector('option[value="1"]');  
 
@@ -194,27 +211,19 @@ if ($user_level != "kasir") {
         let harga = 0;
 
         if (layanan === 'Karpet') {
-            // Matikan opsi 1 dan 2 hari
             optExpress.disabled = true;
             optKilat.disabled = true;
-            
-            // Paksa pilih Reguler (3 hari)
             inputDurasi.value = '3';
-            
-            // Munculkan pesan peringatan kecil
             alertKarpet.classList.remove('d-none');
         } else {
-            // Hidupkan kembali opsi 1 dan 2 hari
             optExpress.disabled = false;
             optKilat.disabled = false;
-            
-            // Sembunyikan pesan peringatan
             alertKarpet.classList.add('d-none');
         }
 
         let durasi = inputDurasi.value; 
 
-        // --- LOGIKA HARGA ---
+        // --- HARGA SESUAI PERMINTAAN ANTUM (3, 2, 1) ---
         if (layanan === 'Lipat') {
             if (durasi === '1') harga = 3;
             else if (durasi === '2') harga = 2;
@@ -226,21 +235,17 @@ if ($user_level != "kasir") {
             else harga = 2;
         } 
         else if (layanan === 'Karpet') {
-            harga = 10; // Harga Karpet tetap
+            harga = 10; 
         }
 
         let total = harga * berat;
-
-        // Format ke Ribuan (contoh: 4.000)
         displayTotal.value = total.toLocaleString('id-ID');
     }
 
-    // Pasang Event Listener
     inputLayanan.addEventListener('change', hitungRealtime);
     inputDurasi.addEventListener('change', hitungRealtime);
     inputBerat.addEventListener('input', hitungRealtime);
 
-    // Jalankan sekali saat loading
     hitungRealtime();
 </script>
 

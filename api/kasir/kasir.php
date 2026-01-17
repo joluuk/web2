@@ -106,8 +106,8 @@ if ($user_level != "kasir") {
                             <div class="col-6 mb-3">
                                 <label class="form-label small fw-bold">Opsi Pembayaran</label>
                                 <select name="bayar" class="form-select">
-                                    <option value="nanti">Bayar Nanti (Pending)</option>
-                                    <option value="sekarang">Bayar Sekarang (Midtrans)</option>
+                                    <option value="nanti">Bayar Nanti</option>
+                                    <option value="sekarang">Bayar Sekarang</option>
                                 </select>
                             </div>
                         </div>

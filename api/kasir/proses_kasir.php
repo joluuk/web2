@@ -61,7 +61,7 @@ if(isset($_POST['simpan_transaksi'])){
         } 
         else {
             // SKENARIO: Bayar Nanti -> Balik ke Kasir
-            header("location:../../kasir/kasir.php?pesan=simpan_pending");
+            header("location:kasir.php?pesan=simpan_pending");
             exit;
         }
 
